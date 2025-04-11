@@ -24,9 +24,10 @@ func interactiveProjectSetup(projectName string) {
 	generateFinalMessage()
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("\nWhich kind of project are you creating?\n" +
+	fmt.Print(
 		"\n1. API (REST, gRPC, GraphQL) 🍃\n" +
-		"\n2. CLI (Cobra) 🐍\n\n")
+			"\n2. CLI (Cobra) 🐍\n\n" +
+			"\nWhich kind of project are you creating?  ")
 
 	projectType, _ := reader.ReadString('\n')
 	projectType = strings.TrimSpace(projectType)
@@ -52,12 +53,24 @@ func interactiveProjectSetup(projectName string) {
 }
 
 func createProjectStructure(projectName, projectType, framework, db string) {
-	baseDirs := []string{
-		"cmd",
-		"internal/config",
-		"internal/database",
-		"pkg",
-		"api",
+	baseDirs := []string{}
+
+	switch projectType {
+	case "1":
+		baseDirs = []string{
+			"cmd",
+			"cmd/app",
+			"internal/config",
+			"pkg",
+			"pkg/db",
+			"api",
+		}
+	case "2":
+		baseDirs = []string{
+			"cmd",
+			"internal/config",
+			"pkg",
+		}
 	}
 
 	for _, dir := range baseDirs {
@@ -68,13 +81,8 @@ func createProjectStructure(projectName, projectType, framework, db string) {
 		}
 	}
 
-	mainContent := `
-package main
-
-func main() {
-  println("New project created with boilerplate-cli! 🍃")
-}
-`
+	mainContent := FrameworkInit(framework)
+	mainContent = strings.ReplaceAll(mainContent, "{{.ProjectName}}", projectName)
 
 	goModContent := fmt.Sprintf("module %s\n\ngo 1.20", projectName)
 
@@ -86,11 +94,12 @@ func main() {
 		goModContent += "\nrequire github.com/gofiber/fiber/v2 latest"
 	}
 
-	if db == "postgres" {
+	switch db {
+	case "postgres":
 		goModContent += "\nrequire github.com/lib/pq latest"
-	} else if db == "mysql" {
+	case "mysql":
 		goModContent += "\nrequire github.com/go-sql-driver/mysql latest"
-	} else if db == "mongo" {
+	case "mongo":
 		goModContent += "\nrequire go.mongodb.org/mongo-driver latest"
 	}
 
@@ -108,11 +117,23 @@ Awesome project generated with boilerplate-cli! 🚀🚀🚀
 	}
 
 	for file, content := range files {
+		if file == "main.go" {
+			path := filepath.Join(projectName, "cmd", "app", file)
+			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+				fmt.Printf("Error writing main.go file: %v\n", err)
+			}
+			continue
+		}
 		path := filepath.Join(projectName, file)
 		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 			fmt.Printf("Error creating file %s: %v\n", path, err)
 		}
 	}
+
+	if db != "none" {
+		createDBFiles(projectName, db)
+	}
+
 	fmt.Println("\nProject created successfully! 😮‍💨")
 }
 
