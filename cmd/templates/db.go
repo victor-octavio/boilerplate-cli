@@ -1,4 +1,4 @@
-package cmd
+package templates
 
 import (
 	"fmt"
@@ -62,7 +62,7 @@ func (c *Config) GetDSN(dbType string) string {
 	dbPath := filepath.Join(projectName, "pkg", "db", "db.go")
 	var dbCode string
 
-	if db == "mongo" {
+	if db == "MongoDB" {
 		dbCode = fmt.Sprintf(`package db
 
 import (
@@ -95,8 +95,8 @@ func InitDB(cfg *config.Config, dbType string) *mongo.Client {
 `, projectName)
 	} else {
 		driver := map[string]string{
-			"postgres": "_ \"github.com/lib/pq\"",
-			"mysql":    "_ \"github.com/go-sql-driver/mysql\"",
+			"PostgreSQL": "_ \"github.com/lib/pq\"",
+			"MySQL":      "_ \"github.com/go-sql-driver/mysql\"",
 		}[db]
 
 		dbCode = fmt.Sprintf(`package db

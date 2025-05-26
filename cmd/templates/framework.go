@@ -1,9 +1,9 @@
-package cmd
+package templates
 
 func FrameworkInit(framework string) string {
 	var mainContent string
 	switch framework {
-	case "gin":
+	case "Gin Gonic":
 		mainContent = `
 package main
 import (
@@ -21,7 +21,7 @@ func main() {
 }
 `
 		break
-	case "fiber":
+	case "Fiber":
 		mainContent = `package main
 
 import (
@@ -40,7 +40,7 @@ func main() {
 }
 `
 		break
-	case "echo":
+	case "Echo":
 		mainContent = `package main
 
 import (
